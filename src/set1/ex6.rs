@@ -2,6 +2,10 @@
 
 use std::{collections::HashMap, error::Error, fs::File, io::BufRead, io::BufReader};
 
+use crate::set1::{ex3, ex5};
+
+use super::ex3::english_score;
+
 pub fn count_ones(byte: u8) -> u32 {
     let mut mask = 0b00000001u8;
     let mut count = 0;
@@ -56,7 +60,7 @@ pub fn find_keylength(cyphertext: &Vec<u8>) -> Vec<usize> {
 
     let mut distances = distances.into_iter().collect::<Vec<_>>();
     distances.sort_by(|(_, dist1), (_, dist2)| dist1.partial_cmp(dist2).unwrap());
-    println!("Distances {:?}", distances);
+    // println!("Distances {:?}", distances);
     distances
         .into_iter()
         .map(|(keylength, _)| keylength)
@@ -124,7 +128,7 @@ pub fn split_c_blocks(cyphertext_bytes: &Vec<u8>, keylength: usize) -> Vec<Vec<u
         .collect()
 }
 
-pub fn transpose_blocks(blocks: &Vec<Vec<u8>>, keylength: u32) -> Vec<Vec<u8>> {
+pub fn transpose_blocks(blocks: &Vec<Vec<u8>>, keylength: usize) -> Vec<Vec<u8>> {
     (0..keylength)
         .into_iter()
         .map(|i| {
@@ -134,6 +138,14 @@ pub fn transpose_blocks(blocks: &Vec<Vec<u8>>, keylength: u32) -> Vec<Vec<u8>> {
                 .map(|x| *x)
                 .collect()
         })
+        .collect()
+}
+
+pub fn repeating_key_xor(cyphertext: &Vec<u8>, key: &Vec<u8>) -> Vec<u8> {
+    cyphertext
+        .iter()
+        .enumerate()
+        .map(|(i, byte)| byte ^ key[i % key.len()])
         .collect()
 }
 
@@ -147,14 +159,44 @@ pub fn main() {
     let cyphertext_bytes = base_64_decode(&cyphertext).unwrap();
 
     let keylengths = find_keylength(&cyphertext_bytes);
-    let chose_kl = keylengths[0];
+    let mut plaintexts = Vec::new();
 
-    let blocks = split_c_blocks(&cyphertext_bytes, chose_kl);
-    println!("{}", blocks[0].len());
-}
+    for keylength in keylengths {
+        let blocks = split_c_blocks(&cyphertext_bytes, keylength);
+        let transposed_blocks = transpose_blocks(&blocks, keylength);
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_transpose() {}
+        let mut key = vec![0u8; keylength];
+        for (i, block) in transposed_blocks.iter().enumerate() {
+            let mut char_scores = (0u8..=255u8)
+                .map(|key| {
+                    (
+                        key,
+                        ex3::english_score(
+                            &block
+                                .iter()
+                                .map(|block_byte| (block_byte ^ key) as char)
+                                .collect::<String>(),
+                        ),
+                    )
+                })
+                .filter(|(_, score)| score.is_some())
+                .map(|(char, score)| (char, score.unwrap()))
+                .collect::<Vec<_>>();
+            char_scores.sort_by_key(|(_, score)| *score);
+            char_scores.reverse();
+            if !char_scores.is_empty() {
+                key[i] = char_scores[0].0;
+            }
+        }
+        plaintexts.push(
+            repeating_key_xor(&cyphertext_bytes, &key)
+                .iter()
+                .map(|byte| *byte as char)
+                .collect::<String>(),
+        );
+    }
+
+    plaintexts.sort_by_key(|plaintext| english_score(plaintext));
+    plaintexts.reverse();
+    println!("{}", plaintexts[0]);
 }
