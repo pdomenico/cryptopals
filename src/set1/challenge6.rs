@@ -2,9 +2,9 @@
 
 use std::{collections::HashMap, error::Error, fs::File, io::BufRead, io::BufReader};
 
-use crate::set1::{ex3, ex5};
+use crate::set1::{challenge3, challenge5};
 
-use super::ex3::english_score;
+use super::challenge3::english_score;
 
 pub fn count_ones(byte: u8) -> u32 {
     let mut mask = 0b00000001u8;
@@ -171,7 +171,7 @@ pub fn main() {
                 .map(|key| {
                     (
                         key,
-                        ex3::english_score(
+                        challenge3::english_score(
                             &block
                                 .iter()
                                 .map(|block_byte| (block_byte ^ key) as char)

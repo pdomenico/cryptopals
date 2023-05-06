@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use super::ex1;
+use super::challenge1;
 
 pub fn single_byte_xor(cyphertext: &Vec<u8>, key: u8) -> Vec<u8> {
     cyphertext.iter().map(|byte| byte ^ key).collect()
@@ -94,7 +94,7 @@ pub fn english_score(s: &String) -> Option<usize> {
 
 pub fn main() {
     let encoded_string = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
-    let bytes = ex1::hex_decode(encoded_string).unwrap();
+    let bytes = challenge1::hex_decode(encoded_string).unwrap();
 
     let mut messages = Vec::new();
     for (c, _) in byte_freq_list(&bytes) {

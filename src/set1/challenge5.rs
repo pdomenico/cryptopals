@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use super::ex1;
+use super::challenge1;
 
 fn repeating_xor(message: &String, key: &Vec<u8>) -> Vec<u8> {
     let mut cyphertext = Vec::new();
@@ -17,5 +17,5 @@ pub fn main() {
 
     let key = "ICE".chars().map(|c| c as u8).collect();
     let cyphertext = repeating_xor(&message, &key);
-    println!("{}", ex1::hex_encode(&cyphertext));
+    println!("{}", challenge1::hex_encode(&cyphertext));
 }

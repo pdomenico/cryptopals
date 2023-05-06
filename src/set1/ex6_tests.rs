@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod transpose_blocks_tests {
-    use crate::set1::ex6::transpose_blocks;
+    use crate::set1::challenge6::transpose_blocks;
 
     #[test]
     fn test_transpose_blocks_empty_input() {
@@ -61,7 +61,7 @@ mod transpose_blocks_tests {
 
 #[cfg(test)]
 mod split_blocks_tests {
-    use crate::set1::ex6::split_c_blocks;
+    use crate::set1::challenge6::split_c_blocks;
 
     #[test]
     fn test_split_c_blocks_empty_input() {
