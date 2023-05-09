@@ -1,8 +1,5 @@
+use aes::cipher::{generic_array::GenericArray, BlockCipher, BlockDecrypt, BlockEncrypt, KeyInit};
 use aes::Aes128;
-use aes::BlockDecrypt;
-use aes::NewBlockCipher;
-use cipher::generic_array::GenericArray;
-use cipher::BlockCipher;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
