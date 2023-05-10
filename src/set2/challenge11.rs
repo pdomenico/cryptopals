@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use hex::encode;
 use rand::rngs::OsRng;
 use rand::{thread_rng, Rng, RngCore};
@@ -19,11 +21,11 @@ pub fn random_block() -> [u8; 16] {
 
 pub fn encryption_oracle(input: &[u8]) -> (Vec<u8>, EncryptionMode) {
     let mut rng = rand::thread_rng();
-    // let encryption_mode = match rng.gen_bool(0.5) {
-    //     true => EncryptionMode::CBC,
-    //     false => EncryptionMode::ECB,
-    // };
-    let encryption_mode = EncryptionMode::ECB;
+    let encryption_mode = match rng.gen_bool(0.5) {
+        true => EncryptionMode::CBC,
+        false => EncryptionMode::ECB,
+    };
+    // let encryption_mode = EncryptionMode::ECB;
 
     let additional_bytes_n: usize = rng.gen_range(5..=10);
     let additional_bytes = (0..additional_bytes_n)
@@ -39,11 +41,11 @@ pub fn encryption_oracle(input: &[u8]) -> (Vec<u8>, EncryptionMode) {
 
     let padded_plaintext = pkcs7(plaintext.as_slice(), 16);
 
-    print!("Padded plaintext: ");
-    for i in (0..padded_plaintext.len()).step_by(16) {
-        print!("{} ", encode(&padded_plaintext[i..i + 16]));
-    }
-    println!();
+    // print!("Padded plaintext: ");
+    // for i in (0..padded_plaintext.len()).step_by(16) {
+    //     print!("{} ", encode(&padded_plaintext[i..i + 16]));
+    // }
+    // println!();
 
     match encryption_mode {
         EncryptionMode::ECB => (
@@ -62,24 +64,34 @@ pub fn encryption_oracle(input: &[u8]) -> (Vec<u8>, EncryptionMode) {
 }
 
 pub fn mode_detector() -> f64 {
-    let tests_n = 1;
+    let tests_n = 1000;
     let mut correct = 0;
 
-    let mut rng = thread_rng();
-
     for _ in 0..tests_n {
-        let plaintext = (0..32).map(|_| rng.gen()).collect::<Vec<u8>>();
+        let plaintext = vec![0u8; 64];
         let (cyphertext, real_mode) = encryption_oracle(plaintext.as_slice());
 
-        print!("Cyphertext: ");
-        for i in (0..cyphertext.len()).step_by(16) {
-            print!("{} ", encode(&cyphertext[i..i + 16]));
-        }
-        println!();
+        // print!("Cyphertext: ");
+        // for i in (0..cyphertext.len()).step_by(16) {
+        //     print!("{} ", encode(&cyphertext[i..i + 16]));
+        // }
+        // println!();
 
         let mut guess = EncryptionMode::CBC;
 
         // TODO
+        let mut cyphertext_blocks = HashSet::new();
+        for i in (0..cyphertext.len()).step_by(16) {
+            match cyphertext_blocks.get(&cyphertext[i..i + 16]) {
+                None => {
+                    cyphertext_blocks.insert(&cyphertext[i..i + 16]);
+                }
+                Some(_) => {
+                    guess = EncryptionMode::ECB;
+                    break;
+                }
+            }
+        }
 
         if guess == real_mode {
             correct += 1;
