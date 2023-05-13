@@ -109,4 +109,80 @@ mod challenge10_tests {
 
         cbc_decrypt(cyphertext, &iv, &key);
     }
+
+    #[test]
+    fn test_ecb_encryption_decryption() {
+        let key = "supersecretkey!!"
+            .chars()
+            .map(|c| c as u8)
+            .collect::<Vec<_>>(); // AES-128 requires a 16-byte
+        let plaintext = "This is a test message."
+            .chars()
+            .map(|c| c as u8)
+            .collect::<Vec<_>>();
+
+        let ciphertext = ecb_encrypt(pkcs7(plaintext.as_slice(), 16).as_slice(), key.as_slice());
+        let decrypted_text = ecb_decrypt(ciphertext.as_slice(), key.as_slice());
+
+        assert_eq!(plaintext, decrypted_text);
+    }
+}
+
+mod challenge13_tests {
+    use crate::set2::challenge13::*;
+
+    #[test]
+    fn test_profile_for() {
+        let email = "test@domain.com";
+        let profile = profile_for(email);
+        assert_eq!(profile, "email=test@domain.com&uid=10&role=user");
+    }
+
+    #[test]
+    fn test_profile_for_with_metacharacters() {
+        let email = "test@domain.com&role=admin";
+        let profile = profile_for(email);
+        // Metacharacters should be removed
+        assert_eq!(profile, "email=test@domain.comroleadmin&uid=10&role=user");
+    }
+
+    #[test]
+    fn test_parse_from_str_correctly_formatted() {
+        let encoded_profile = "email=foo@bar.com&uid=3&role=user";
+        let profile = Profile::parse_from_str(encoded_profile).unwrap();
+
+        assert_eq!(profile.email, "foo@bar.com");
+        assert_eq!(profile.uid, 3);
+        assert_eq!(profile.role, "user");
+    }
+
+    #[test]
+    fn test_parse_from_str_missing_email() {
+        let encoded_profile = "uid=3&role=user";
+
+        match Profile::parse_from_str(encoded_profile) {
+            Ok(_) => panic!("Expected an error, but got Ok(_)"),
+            Err(e) => assert_eq!(e, "Missing email"),
+        }
+    }
+
+    #[test]
+    fn test_parse_from_str_invalid_uid() {
+        let encoded_profile = "email=foo@bar.com&uid=abc&role=user";
+
+        match Profile::parse_from_str(encoded_profile) {
+            Ok(_) => panic!("Expected an error, but got Ok(_)"),
+            Err(e) => assert_eq!(e, "Invalid uuid"),
+        }
+    }
+
+    #[test]
+    fn test_parse_from_str_missing_role() {
+        let encoded_profile = "email=foo@bar.com&uid=3";
+
+        match Profile::parse_from_str(encoded_profile) {
+            Ok(_) => panic!("Expected an error, but got Ok(_)"),
+            Err(e) => assert_eq!(e, "Missing role"),
+        }
+    }
 }

@@ -18,6 +18,29 @@ pub fn ecb_encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
         .collect()
 }
 
+pub fn ecb_decrypt(cyphertext: &[u8], key: &[u8]) -> Vec<u8> {
+    assert_eq!(cyphertext.len() % 16, 0);
+    assert_eq!(key.len(), 16);
+
+    let cypher = Aes128::new(GenericArray::from_slice(key));
+
+    let mut plaintext = (0..cyphertext.len())
+        .step_by(16)
+        .map(|i| {
+            let mut block = GenericArray::clone_from_slice(&cyphertext[i..i + 16]);
+            cypher.decrypt_block(&mut block);
+            block
+        })
+        .flatten()
+        .collect::<Vec<u8>>();
+
+    let padding = *plaintext.last().unwrap() as usize;
+    for _ in 0..padding {
+        plaintext.pop();
+    }
+    plaintext
+}
+
 pub fn cbc_encrypt(plaintext: &[u8], iv: &[u8], key: &[u8]) -> Vec<u8> {
     assert!(plaintext.len() % 16 == 0);
     assert!(key.len() == 16);

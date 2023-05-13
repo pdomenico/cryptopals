@@ -49,14 +49,6 @@ pub fn discover_block_size() -> usize {
     block_size
 }
 
-fn print_in_blocks(bytes: &[u8]) {
-    assert_eq!(bytes.len() % 16, 0);
-
-    (0..bytes.len())
-        .step_by(16)
-        .for_each(|i| println!("{}", hex::encode(&bytes[i..i + 16])))
-}
-
 pub fn decrypt_secret_string() -> Vec<u8> {
     // Discover how much padding there is
     let block_size = discover_block_size();
